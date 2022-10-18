@@ -44,71 +44,133 @@ test("getDoc", () => {
   expect(doc.name).toBe("Mike");
 });
 
-test("getDocs + where", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Mike" });
-  addDoc(col, { name: "John" });
+describe("queries", () => {
+  test("getDocs + where", () => {
+    const col = collection("people");
+    addDoc(col, { name: "Mike" });
+    addDoc(col, { name: "John" });
 
-  const docs = getDocs(col, where("name", "==", "Mike"));
-  expect(docs[0].name).toBe("Mike");
+    const docs = getDocs(col, where("name", "==", "Mike"));
+    expect(docs[0].name).toBe("Mike");
 
-  const docs2 = getDocs(col, where("name", "==", "John"));
-  expect(docs2[0].name).toBe("John");
-});
+    const docs2 = getDocs(col, where("name", "==", "John"));
+    expect(docs2[0].name).toBe("John");
+  });
 
-test("getDocs + multiple where", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Mike", surname: "Small", age: 18 });
-  addDoc(col, { name: "Mike", surname: "Big", age: 39 });
+  test("getDocs + multiple where", () => {
+    const col = collection("people");
+    addDoc(col, { name: "Mike", surname: "Small", age: 18 });
+    addDoc(col, { name: "Mike", surname: "Big", age: 39 });
 
-  const docs = getDocs(col, where("name", "==", "Mike"), where("age", ">", 18));
-  expect(docs[0].surname).toBe("Big");
-});
+    const docs = getDocs(
+      col,
+      where("name", "==", "Mike"),
+      where("age", ">", 18)
+    );
+    expect(docs[0].surname).toBe("Big");
+  });
 
-test("getDocs + order", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Abel" });
-  addDoc(col, { name: "Zynosky" });
+  test("in", () => {
+    const col = collection("people");
+    addDoc(col, { name: "Mike" });
+    addDoc(col, { name: "John" });
+    addDoc(col, { name: "Pfteven" });
 
-  let docs = getDocs(col, orderBy("name", "desc"));
-  expect(docs[0].name).toBe("Zynosky");
-  expect(docs[1].name).toBe("Abel");
+    const docs = getDocs(col, where("name", "in", ["Mike", "John"]));
 
-  docs = getDocs(col, orderBy("name", "asc"));
-  expect(docs[0].name).toBe("Abel");
-  expect(docs[1].name).toBe("Zynosky");
-});
+    expect(docs.length).toBe(2);
+    expect(docs[0].name).toBe("Mike");
+    expect(docs[1].name).toBe("John");
+  });
 
-test("getDocs + numeric order", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Abel", age: 40 });
-  addDoc(col, { name: "Zynosky", age: 30 });
+  test("not-in", () => {
+    const col = collection("people");
+    addDoc(col, { name: "Mike" });
+    addDoc(col, { name: "John" });
+    addDoc(col, { name: "Pfteven" });
 
-  const docs = getDocs(col, orderBy("age", "desc"));
-  expect(docs[0].name).toBe("Abel");
-  expect(docs[1].name).toBe("Zynosky");
-});
+    const docs = getDocs(col, where("name", "not-in", ["Mike", "John"]));
 
-test("limit", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Abel", age: 40 });
-  addDoc(col, { name: "Zynosky", age: 30 });
-  addDoc(col, { name: "Pepe", age: 30 });
+    expect(docs.length).toBe(1);
+    expect(docs[0].name).toBe("Pfteven");
+  });
 
-  const docs = getDocs(col, limit(2));
-  expect(docs[0].name).toBe("Abel");
-  expect(docs[1].name).toBe("Zynosky");
-});
+  test("array-contains", () => {
+    const col = collection("people");
+    addDoc(col, { name: "Mike", likes: ["potatoes", "hunger"] });
+    addDoc(col, { name: "John", likes: ["coffee", "potatoes"] });
+    addDoc(col, { name: "Pfteven", likes: ["dogs"] });
 
-test("skip", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Abel", age: 40 });
-  addDoc(col, { name: "Zynosky", age: 30 });
-  addDoc(col, { name: "Pepe", age: 30 });
+    const docs = getDocs(
+      col,
+      where("likes", "array-contains", ["potatoes", "hunger"])
+    );
 
-  const docs = getDocs(col, skip(1));
-  expect(docs[0].name).toBe("Zynosky");
-  expect(docs[1].name).toBe("Pepe");
+    expect(docs.length).toBe(1);
+    expect(docs[0].name).toBe("Mike");
+  });
+
+  test("array-contains-any", () => {
+    const col = collection("people");
+    addDoc(col, { name: "Mike", likes: ["potatoes", "hunger"] });
+    addDoc(col, { name: "John", likes: ["coffee", "potatoes"] });
+    addDoc(col, { name: "Pfteven", likes: ["dogs"] });
+
+    const docs = getDocs(
+      col,
+      where("likes", "array-contains-any", ["potatoes", "hunger"])
+    );
+
+    expect(docs.length).toBe(2);
+    expect(docs[0].name).toBe("Mike");
+    expect(docs[1].name).toBe("John");
+  });
+
+  test("getDocs + order", () => {
+    const col = collection("people");
+    addDoc(col, { name: "Abel" });
+    addDoc(col, { name: "Zynosky" });
+
+    let docs = getDocs(col, orderBy("name", "desc"));
+    expect(docs[0].name).toBe("Zynosky");
+    expect(docs[1].name).toBe("Abel");
+
+    docs = getDocs(col, orderBy("name", "asc"));
+    expect(docs[0].name).toBe("Abel");
+    expect(docs[1].name).toBe("Zynosky");
+  });
+
+  test("getDocs + numeric order", () => {
+    const col = collection("people");
+    addDoc(col, { name: "Abel", age: 40 });
+    addDoc(col, { name: "Zynosky", age: 30 });
+
+    const docs = getDocs(col, orderBy("age", "desc"));
+    expect(docs[0].name).toBe("Abel");
+    expect(docs[1].name).toBe("Zynosky");
+  });
+
+  test("limit", () => {
+    const col = collection("people");
+    addDoc(col, { name: "Abel", age: 40 });
+    addDoc(col, { name: "Zynosky", age: 30 });
+    addDoc(col, { name: "Pepe", age: 30 });
+
+    const docs = getDocs(col, limit(2));
+    expect(docs[0].name).toBe("Abel");
+    expect(docs[1].name).toBe("Zynosky");
+  });
+
+  test("skip", () => {
+    const col = collection("people");
+    addDoc(col, { name: "Abel", age: 40 });
+    addDoc(col, { name: "Zynosky", age: 30 });
+    addDoc(col, { name: "Pepe", age: 30 });
+
+    const docs = getDocs(col, skip(1));
+    expect(docs[0].name).toBe("Zynosky");
+    expect(docs[1].name).toBe("Pepe");
+  });
 });
 
 test("deleteDocs", () => {

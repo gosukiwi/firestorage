@@ -25,17 +25,28 @@ import {
 const col = collection("people");
 
 // insert document
-const doc = addDoc(col, { name: "Tolouse" });
-const doc = addDoc(col, { name: "Thomas O'Malley" });
-// not all documents have to be equal
-const doc = addDoc(col, { name: "Duchess", age: 3 });
+const doc = addDoc(col, { name: "Tolouse", likes: ["Piano", "Singing"] });
+const doc = addDoc(col, { name: "Thomas O'Malley", likes: ["Duchess"] });
+const doc = addDoc(col, {
+  name: "Duchess",
+  likes: ["Thomas O'Malley", "Dancing"],
+  age: 3, // Not all documents have to be equal! Duchess has `age`
+});
 
 // get all documents
 const docs = getDocs(col);
 
 // get all documents matching a certain query
 const docs = getDocs(col, where("name", "==", "Tolouse"));
-const docs = getDocs(col, where("name", "==", "Tolouse"), where("age", ">", 1));
+const docs = getDocs(col, where("name", "in", ["Tolouse", "Duchess"]));
+const docs = getDocs(
+  col,
+  where("likes", "array-contains", ["Piano", "Singing"])
+);
+const docs = getDocs(
+  col,
+  where("likes", "array-contains-any", ["Piano", "Singing"])
+);
 const docs = getDocs(col, orderBy("name", "asc"));
 const docs = getDocs(col, limit(10));
 const docs = getDocs(col, skip(5));
