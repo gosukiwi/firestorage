@@ -14,7 +14,6 @@ import {
   collection,
   addDoc,
   getDocs,
-  query,
   where,
   orderBy,
   limit,
@@ -31,12 +30,12 @@ const doc = addDoc(col, { name: "Tolouse" });
 const docs = getDocs(col);
 
 // query docs
-const docs = query(col, where("name", "==", "Tolouse"));
-const docs = query(col, where("name", "==", "Tolouse"), where("age", ">", 1));
-const docs = query(col, orderBy("name", "asc"));
-const docs = query(col, limit(10));
-const docs = query(col, skip(5));
-const docs = query(
+const docs = getDocs(col, where("name", "==", "Tolouse"));
+const docs = getDocs(col, where("name", "==", "Tolouse"), where("age", ">", 1));
+const docs = getDocs(col, orderBy("name", "asc"));
+const docs = getDocs(col, limit(10));
+const docs = getDocs(col, skip(5));
+const docs = getDocs(
   col,
   where("name", "==", "Tolouse"),
   orderBy("name", "asc"),

@@ -3,7 +3,6 @@ const {
   collection,
   addDoc,
   getDocs,
-  query,
   where,
   orderBy,
   limit,
@@ -33,47 +32,47 @@ test("getDocs", () => {
   expect(docs[0].name).toBe("Mike");
 });
 
-test("query + where", () => {
+test("getDocs + where", () => {
   const col = collection("people");
   addDoc(col, { name: "Mike" });
   addDoc(col, { name: "John" });
 
-  const docs = query(col, where("name", "==", "Mike"));
+  const docs = getDocs(col, where("name", "==", "Mike"));
   expect(docs[0].name).toBe("Mike");
 
-  const docs2 = query(col, where("name", "==", "John"));
+  const docs2 = getDocs(col, where("name", "==", "John"));
   expect(docs2[0].name).toBe("John");
 });
 
-test("query + multiple where", () => {
+test("getDocs + multiple where", () => {
   const col = collection("people");
   addDoc(col, { name: "Mike", surname: "Small", age: 18 });
   addDoc(col, { name: "Mike", surname: "Big", age: 39 });
 
-  const docs = query(col, where("name", "==", "Mike"), where("age", ">", 18));
+  const docs = getDocs(col, where("name", "==", "Mike"), where("age", ">", 18));
   expect(docs[0].surname).toBe("Big");
 });
 
-test("query + order", () => {
+test("getDocs + order", () => {
   const col = collection("people");
   addDoc(col, { name: "Abel" });
   addDoc(col, { name: "Zynosky" });
 
-  let docs = query(col, orderBy("name", "desc"));
+  let docs = getDocs(col, orderBy("name", "desc"));
   expect(docs[0].name).toBe("Zynosky");
   expect(docs[1].name).toBe("Abel");
 
-  docs = query(col, orderBy("name", "asc"));
+  docs = getDocs(col, orderBy("name", "asc"));
   expect(docs[0].name).toBe("Abel");
   expect(docs[1].name).toBe("Zynosky");
 });
 
-test("query + numeric order", () => {
+test("getDocs + numeric order", () => {
   const col = collection("people");
   addDoc(col, { name: "Abel", age: 40 });
   addDoc(col, { name: "Zynosky", age: 30 });
 
-  const docs = query(col, orderBy("age", "desc"));
+  const docs = getDocs(col, orderBy("age", "desc"));
   expect(docs[0].name).toBe("Abel");
   expect(docs[1].name).toBe("Zynosky");
 });
@@ -84,7 +83,7 @@ test("limit", () => {
   addDoc(col, { name: "Zynosky", age: 30 });
   addDoc(col, { name: "Pepe", age: 30 });
 
-  const docs = query(col, limit(2));
+  const docs = getDocs(col, limit(2));
   expect(docs[0].name).toBe("Abel");
   expect(docs[1].name).toBe("Zynosky");
 });
@@ -95,7 +94,7 @@ test("skip", () => {
   addDoc(col, { name: "Zynosky", age: 30 });
   addDoc(col, { name: "Pepe", age: 30 });
 
-  const docs = query(col, skip(1));
+  const docs = getDocs(col, skip(1));
   expect(docs[0].name).toBe("Zynosky");
   expect(docs[1].name).toBe("Pepe");
 });
