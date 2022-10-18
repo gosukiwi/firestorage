@@ -9,7 +9,9 @@ const {
   limit,
   skip,
   deleteDocs,
+  deleteDoc,
   updateDocs,
+  updateDoc,
 } = require("../lib/index");
 
 beforeAll(() => {
@@ -109,7 +111,7 @@ test("skip", () => {
   expect(docs[1].name).toBe("Pepe");
 });
 
-test("delete", () => {
+test("deleteDocs", () => {
   const col = collection("people");
   addDoc(col, { name: "Abel", age: 40 });
   addDoc(col, { name: "Zynosky", age: 30 });
@@ -121,11 +123,34 @@ test("delete", () => {
   expect(docs[1].name).toBe("Pepe");
 });
 
-test("update", () => {
+test("deleteDoc", () => {
+  const col = collection("people");
+  addDoc(col, { name: "Abel", age: 40 });
+  addDoc(col, { name: "Zynosky", age: 30 });
+  addDoc(col, { name: "Pepe", age: 30 });
+
+  deleteDoc(col);
+  const docs = getDocs(col);
+  expect(docs[0].name).toBe("Zynosky");
+  expect(docs[1].name).toBe("Pepe");
+});
+
+test("updateDocs", () => {
   const col = collection("people");
   addDoc(col, { name: "Abel", age: 40 });
 
   updateDocs(col, where("name", "==", "Abel"), { age: 22 });
   const docs = getDocs(col);
   expect(docs[0].age).toBe(22);
+});
+
+test("updateDoc", () => {
+  const col = collection("people");
+  addDoc(col, { name: "Abel", age: 40 });
+  addDoc(col, { name: "Betty", age: 60 });
+
+  updateDoc(col, { age: 22 });
+  const docs = getDocs(col);
+  expect(docs[0].age).toBe(22);
+  expect(docs[1].age).toBe(60);
 });
