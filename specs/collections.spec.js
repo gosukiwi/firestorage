@@ -8,6 +8,8 @@ const {
   orderBy,
   limit,
   skip,
+  deleteDocs,
+  updateDocs,
 } = require("../lib/index");
 
 beforeAll(() => {
@@ -100,4 +102,25 @@ test("skip", async () => {
   const docs = await query(col, skip(1));
   expect(docs[0].name).toBe("Zynosky");
   expect(docs[1].name).toBe("Pepe");
+});
+
+test("delete", async () => {
+  const col = collection("people");
+  await addDoc(col, { name: "Abel", age: 40 });
+  await addDoc(col, { name: "Zynosky", age: 30 });
+  await addDoc(col, { name: "Pepe", age: 30 });
+
+  await deleteDocs(col, where("name", "==", "Zynosky"));
+  const docs = await getDocs(col);
+  expect(docs[0].name).toBe("Abel");
+  expect(docs[1].name).toBe("Pepe");
+});
+
+test("update", async () => {
+  const col = collection("people");
+  await addDoc(col, { name: "Abel", age: 40 });
+
+  await updateDocs(col, where("name", "==", "Abel"), { age: 22 });
+  const docs = await getDocs(col);
+  expect(docs[0].age).toBe(22);
 });
