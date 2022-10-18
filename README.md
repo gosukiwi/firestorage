@@ -1,6 +1,7 @@
 # FireStorage
 
-This library provides a firebase-like interface to interacting with
+This library provides a very simplistic firebase-like interface to interacting
+with
 [LocalStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
 
 # Installation
@@ -25,6 +26,8 @@ const col = collection("people");
 
 // insert doc
 const doc = addDoc(col, { name: "Tolouse" });
+const doc = addDoc(col, { name: "Thomas O'Malley" });
+const doc = addDoc(col, { name: "Duchess" });
 
 // get all docs
 const docs = getDocs(col);

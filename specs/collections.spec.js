@@ -3,6 +3,7 @@ const {
   collection,
   addDoc,
   getDocs,
+  getDoc,
   where,
   orderBy,
   limit,
@@ -30,6 +31,15 @@ test("getDocs", () => {
   addDoc(col, { name: "Mike" });
   const docs = getDocs(col);
   expect(docs[0].name).toBe("Mike");
+});
+
+test("getDoc", () => {
+  const col = collection("people");
+  addDoc(col, { name: "Mike" });
+  addDoc(col, { name: "John" });
+
+  const doc = getDoc(col, where("name", "==", "Mike"));
+  expect(doc.name).toBe("Mike");
 });
 
 test("getDocs + where", () => {
