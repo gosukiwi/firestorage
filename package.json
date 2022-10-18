@@ -1,0 +1,23 @@
+{
+  "name": "firebase-localstorage",
+  "version": "1.0.0",
+  "description": "A firebase-like database implemented using localstorage for educational purposes",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Federico Ramirez",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.25.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.3.0",
+    "eslint-plugin-promise": "^6.1.0",
+    "jest": "^29.2.0",
+    "node-localstorage": "^2.2.1",
+    "prettier": "^2.7.1"
+  }
+}
