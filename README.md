@@ -48,6 +48,9 @@ const docs = await query(
   limit(10)
 );
 
-// delete doc (TODO)
-// update doc (TODO)
+// delete doc
+await deleteDocs(col, where("name", "==", "Tolouse"));
+
+// update doc
+await updateDocs(col, where("name", "==", "Tolouse"), { age: 4 });
 ```
