@@ -20,107 +20,103 @@ beforeEach(() => {
   global.localStorage.clear();
 });
 
-test("addDoc", async () => {
+test("addDoc", () => {
   const col = collection("people");
-  const doc = await addDoc(col, { name: "Mike" });
+  const doc = addDoc(col, { name: "Mike" });
   expect(doc.name).toBe("Mike");
 });
 
-test("getDocs", async () => {
+test("getDocs", () => {
   const col = collection("people");
-  await addDoc(col, { name: "Mike" });
-  const docs = await getDocs(col);
+  addDoc(col, { name: "Mike" });
+  const docs = getDocs(col);
   expect(docs[0].name).toBe("Mike");
 });
 
-test("query + where", async () => {
+test("query + where", () => {
   const col = collection("people");
-  await addDoc(col, { name: "Mike" });
-  await addDoc(col, { name: "John" });
+  addDoc(col, { name: "Mike" });
+  addDoc(col, { name: "John" });
 
-  const docs = await query(col, where("name", "==", "Mike"));
+  const docs = query(col, where("name", "==", "Mike"));
   expect(docs[0].name).toBe("Mike");
 
-  const docs2 = await query(col, where("name", "==", "John"));
+  const docs2 = query(col, where("name", "==", "John"));
   expect(docs2[0].name).toBe("John");
 });
 
-test("query + multiple where", async () => {
+test("query + multiple where", () => {
   const col = collection("people");
-  await addDoc(col, { name: "Mike", surname: "Small", age: 18 });
-  await addDoc(col, { name: "Mike", surname: "Big", age: 39 });
+  addDoc(col, { name: "Mike", surname: "Small", age: 18 });
+  addDoc(col, { name: "Mike", surname: "Big", age: 39 });
 
-  const docs = await query(
-    col,
-    where("name", "==", "Mike"),
-    where("age", ">", 18)
-  );
+  const docs = query(col, where("name", "==", "Mike"), where("age", ">", 18));
   expect(docs[0].surname).toBe("Big");
 });
 
-test("query + order", async () => {
+test("query + order", () => {
   const col = collection("people");
-  await addDoc(col, { name: "Abel" });
-  await addDoc(col, { name: "Zynosky" });
+  addDoc(col, { name: "Abel" });
+  addDoc(col, { name: "Zynosky" });
 
-  let docs = await query(col, orderBy("name", "desc"));
+  let docs = query(col, orderBy("name", "desc"));
   expect(docs[0].name).toBe("Zynosky");
   expect(docs[1].name).toBe("Abel");
 
-  docs = await query(col, orderBy("name", "asc"));
+  docs = query(col, orderBy("name", "asc"));
   expect(docs[0].name).toBe("Abel");
   expect(docs[1].name).toBe("Zynosky");
 });
 
-test("query + numeric order", async () => {
+test("query + numeric order", () => {
   const col = collection("people");
-  await addDoc(col, { name: "Abel", age: 40 });
-  await addDoc(col, { name: "Zynosky", age: 30 });
+  addDoc(col, { name: "Abel", age: 40 });
+  addDoc(col, { name: "Zynosky", age: 30 });
 
-  const docs = await query(col, orderBy("age", "desc"));
+  const docs = query(col, orderBy("age", "desc"));
   expect(docs[0].name).toBe("Abel");
   expect(docs[1].name).toBe("Zynosky");
 });
 
-test("limit", async () => {
+test("limit", () => {
   const col = collection("people");
-  await addDoc(col, { name: "Abel", age: 40 });
-  await addDoc(col, { name: "Zynosky", age: 30 });
-  await addDoc(col, { name: "Pepe", age: 30 });
+  addDoc(col, { name: "Abel", age: 40 });
+  addDoc(col, { name: "Zynosky", age: 30 });
+  addDoc(col, { name: "Pepe", age: 30 });
 
-  const docs = await query(col, limit(2));
+  const docs = query(col, limit(2));
   expect(docs[0].name).toBe("Abel");
   expect(docs[1].name).toBe("Zynosky");
 });
 
-test("skip", async () => {
+test("skip", () => {
   const col = collection("people");
-  await addDoc(col, { name: "Abel", age: 40 });
-  await addDoc(col, { name: "Zynosky", age: 30 });
-  await addDoc(col, { name: "Pepe", age: 30 });
+  addDoc(col, { name: "Abel", age: 40 });
+  addDoc(col, { name: "Zynosky", age: 30 });
+  addDoc(col, { name: "Pepe", age: 30 });
 
-  const docs = await query(col, skip(1));
+  const docs = query(col, skip(1));
   expect(docs[0].name).toBe("Zynosky");
   expect(docs[1].name).toBe("Pepe");
 });
 
-test("delete", async () => {
+test("delete", () => {
   const col = collection("people");
-  await addDoc(col, { name: "Abel", age: 40 });
-  await addDoc(col, { name: "Zynosky", age: 30 });
-  await addDoc(col, { name: "Pepe", age: 30 });
+  addDoc(col, { name: "Abel", age: 40 });
+  addDoc(col, { name: "Zynosky", age: 30 });
+  addDoc(col, { name: "Pepe", age: 30 });
 
-  await deleteDocs(col, where("name", "==", "Zynosky"));
-  const docs = await getDocs(col);
+  deleteDocs(col, where("name", "==", "Zynosky"));
+  const docs = getDocs(col);
   expect(docs[0].name).toBe("Abel");
   expect(docs[1].name).toBe("Pepe");
 });
 
-test("update", async () => {
+test("update", () => {
   const col = collection("people");
-  await addDoc(col, { name: "Abel", age: 40 });
+  addDoc(col, { name: "Abel", age: 40 });
 
-  await updateDocs(col, where("name", "==", "Abel"), { age: 22 });
-  const docs = await getDocs(col);
+  updateDocs(col, where("name", "==", "Abel"), { age: 22 });
+  const docs = getDocs(col);
   expect(docs[0].age).toBe(22);
 });
