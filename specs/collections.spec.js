@@ -6,6 +6,8 @@ const {
   query,
   where,
   orderBy,
+  limit,
+  skip,
 } = require("../lib/index");
 
 beforeAll(() => {
@@ -76,4 +78,26 @@ test("query + numeric order", async () => {
   const docs = await query(col, orderBy("age", "desc"));
   expect(docs[0].name).toBe("Abel");
   expect(docs[1].name).toBe("Zynosky");
+});
+
+test("limit", async () => {
+  const col = collection("people");
+  await addDoc(col, { name: "Abel", age: 40 });
+  await addDoc(col, { name: "Zynosky", age: 30 });
+  await addDoc(col, { name: "Pepe", age: 30 });
+
+  const docs = await query(col, limit(2));
+  expect(docs[0].name).toBe("Abel");
+  expect(docs[1].name).toBe("Zynosky");
+});
+
+test("skip", async () => {
+  const col = collection("people");
+  await addDoc(col, { name: "Abel", age: 40 });
+  await addDoc(col, { name: "Zynosky", age: 30 });
+  await addDoc(col, { name: "Pepe", age: 30 });
+
+  const docs = await query(col, skip(1));
+  expect(docs[0].name).toBe("Zynosky");
+  expect(docs[1].name).toBe("Pepe");
 });
