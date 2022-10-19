@@ -13,12 +13,8 @@ for educational purposes.
 # Usage Overview
 
 ```javascript
-import { collection, doc, ... } from "firestorage";
+import { collection, addDoc, ... } from "firestorage";
 
-// You do not need to "create" or "delete" collections. After you create the
-// first document in a collection, the collection exists. If you delete all of
-// the documents in a collection, it no longer exists.
-//
 // You can get a reference to a collection (colRef) by using `collection`.
 const colRef = collection("cats");
 
@@ -73,31 +69,156 @@ setDoc(tolouseRef, { name: 'Tolouse', age: 1 }, { merge: true })
 updateDoc(duchessRef, { age: 2 });
 ```
 
+# Collections
+
+You can think of a collection as a bag of documents, with documents being just
+JSON objects. Unlike Firebase, there are no subcollections in this library.
+
+You do not need to "create" or "delete" collections. After you create the
+first document in a collection, the collection exists. If you delete all of
+the documents in a collection, it no longer exists.
+
+You can get a reference to a collection in two ways:
+
+```javascript
+const col = collection("my-collection");
+const col = doc("my-collection");
+```
+
+They are both equal, and will return a collection reference, or just `colRef`.
+
+# References
+
+A reference is a pointer to some data, either a collection or a document. You
+can think of it like an address, such as "FakeStreet 123". Given that address,
+the library knows how to access a given piece of data.
+
 # Document Identifiers
 
-TODO
+There are two ways to work with document identifiers, either setting them
+yourself, or letting the library do it.
+
+To create a custom ID, you can use `doc`:
+
+```javascript
+const tolouse = doc("cats", "tolouse");
+```
+
+The first part (`cats`) is the collection, and the second part (`tolouse`) is
+the ID.
+
+Most of the time though, you want automatic unique IDs. For that, you can use
+`addDoc`:
+
+```javascript
+const tolouse = addDoc(doc("cats"), { name: "Tolouse" });
+const id = getDoc(tolouse).data().id; // An auto-generated UID
+```
 
 # Queries
 
+When fetching multiple documents, most of the time you'll want to filter those
+documents. The most common filter is `where`:
+
+```javascript
+const q = query(col, where("name", "==", "Tolouse"));
+```
+
+We define a query by using the `query` function. It takes a collection
+reference as first parameter, and we can pass as many "filters" as we want. In
+this case, we pass a single one: `where`.
+
+Once we have a query, we can pass it to `getDocs` to get the
+results:
+
+```javascript
+const q = query(col, where("name", "==", "Tolouse"));
+const result = getDocs(q);
+
+result.data().forEach((cat) => {
+  console.log(cat);
+});
+```
+
+If we want to match by another field, for example, where the age is greater
+than 1, we can simply add another `where`. It will work like an `AND`
+condition.
+
+```javascript
+const q = query(col, where("name", "==", "Tolouse"), where("age", ">", 1));
+```
+
+If we want to perform an `OR`, we can use the `in` comparator:
+
 ```javascript
 const q = query(col, where("name", "in", ["Tolouse", "Duchess"]));
-const docs = getDocs(q);
+```
 
-const docs = getDocs(
-  col,
-  where("likes", "array-contains", ["Piano", "Singing"])
-);
-const docs = getDocs(
+That will match all cats named either `"Tolouse"` or `"Duchess"`.
+
+## Working with Arrays
+
+Documents are JSON objects, and as such, can have arrays. We can filter
+documents by their array values using `array-contains` and
+`array-contains-any`.
+
+```javascript
+const q = query(col, where("likes", "array-contains", ["Piano", "Singing"]));
+```
+
+The query above will match all documents in `col` where the `likes` array
+contains _both_ `"Piano"` and `"Singing"`.
+
+If we want to match if it contains any (either `"Piano"` or `"Singing"`) we
+can use `array-contains-any` instead:
+
+```javascript
+const q = query(
   col,
   where("likes", "array-contains-any", ["Piano", "Singing"])
 );
-const docs = getDocs(col, orderBy("name", "asc"));
-const docs = getDocs(col, limit(10));
-const docs = getDocs(col, skip(5));
-// you can pass as many queries as you want, they will be applied in order
-const docs = getDocs(
+```
+
+## All Comparators
+
+The comparators `where` supports are: `==`, `!=`, `>`, `>=`, `<`, `<=`, `in`,
+`not-in`, `array-contains`, `array-contains-any`.
+
+## Sorting
+
+You can sort documents by using `orderBy`, which takes a field as first
+parameter, and the second parameter can be either `"asc"` or `"desc"`, for
+ascending or descending order:
+
+```javascript
+const q = query(col, orderBy("name", "asc"));
+```
+
+In the query above, we'll sort all documents in `col` by `name` ascending,
+meaning we'll go from A to Z. If we passed `"desc"` instead, it would sort
+from Z to A.
+
+At the moment, this library supports sorting by strings and numbers only.
+
+## Skip and Limit
+
+You can skip a fixed amount of results, or limit the amount of results
+returned by a query by using `skip` and `limit`:
+
+```javascript
+const q = query(col, limit(10)); // Limit the result to 10 documents
+const q = query(col, skip(5)); // Skip the first 5 documents
+```
+
+## Using it all together
+
+By combining the filters above, you can create complex queries:
+
+```javascript
+const q = query(
   col,
-  where("name", "==", "Tolouse"),
+  where("name", "!=", "Tolouse"),
+  where("likes", "array-contains-any", ["Dancing", "Singing"]),
   orderBy("name", "asc"),
   skip(1),
   limit(10)
