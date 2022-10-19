@@ -8,10 +8,11 @@ const {
   orderBy,
   limit,
   skip,
-  deleteDocs,
   deleteDoc,
-  updateDocs,
+  doc,
+  setDoc,
   updateDoc,
+  query,
 } = require("../lib/index");
 
 beforeAll(() => {
@@ -22,51 +23,105 @@ beforeEach(() => {
   global.localStorage.clear();
 });
 
+describe("setDoc", () => {
+  test("inserts when empty", () => {
+    const ref = doc("people", "mike");
+    setDoc(ref, { name: "Mike" });
+
+    const docSnap = getDoc(ref);
+    expect(docSnap.exists()).toBe(true);
+    expect(docSnap.data().id).toBe("mike");
+    expect(docSnap.data().name).toBe("Mike");
+    expect(ref.collection.all().length).toBe(1);
+  });
+
+  test("merges", () => {
+    const ref = doc("people", "mike");
+    setDoc(ref, { name: "Mike" });
+    setDoc(ref, { age: 18 }, { merge: true });
+
+    const docSnap = getDoc(ref);
+    expect(docSnap.data().name).toBe("Mike");
+    expect(docSnap.data().age).toBe(18);
+  });
+
+  test("overrides", () => {
+    const ref = doc("people", "mike");
+    setDoc(ref, { name: "Mike" });
+    setDoc(ref, { age: 18 });
+
+    const docSnap = getDoc(ref);
+    expect(docSnap.data().name).toBe(undefined);
+    expect(docSnap.data().age).toBe(18);
+  });
+});
+
 test("addDoc", () => {
-  const col = collection("people");
-  const doc = addDoc(col, { name: "Mike" });
-  expect(doc.name).toBe("Mike");
+  const docRef = addDoc(doc("people"), { name: "Mike" });
+
+  const docSnap = getDoc(docRef);
+  expect(docSnap.exists()).toBe(true);
+  expect(docSnap.data().id).not.toBe(undefined);
+  expect(docSnap.data().name).toBe("Mike");
+});
+
+test("updateDoc", () => {
+  const ref = doc("people", "mike");
+  setDoc(ref, { name: "Mike" });
+  updateDoc(ref, { age: 18 });
+
+  const docSnap = getDoc(ref);
+  expect(docSnap.data().name).toBe("Mike");
+  expect(docSnap.data().age).toBe(18);
+});
+
+test("deleteDoc", () => {
+  const docRef = addDoc(doc("people"), { name: "Mike" });
+  expect(getDoc(docRef).exists()).toBe(true);
+
+  deleteDoc(docRef);
+
+  expect(getDoc(docRef).exists()).toBe(false);
 });
 
 test("getDocs", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Mike" });
-  const docs = getDocs(col);
-  expect(docs[0].name).toBe("Mike");
-});
+  setDoc(doc("people", "mike"), { name: "Mike" });
+  setDoc(doc("people", "john"), { name: "John" });
 
-test("getDoc", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Mike" });
-  addDoc(col, { name: "John" });
+  const querySnapshot = getDocs(collection("people"));
 
-  const doc = getDoc(col, where("name", "==", "Mike"));
-  expect(doc.name).toBe("Mike");
+  expect(querySnapshot.data().length).toBe(2);
+  expect(querySnapshot.data()[0].name).toBe("Mike");
+  expect(querySnapshot.data()[1].name).toBe("John");
 });
 
 describe("queries", () => {
-  test("getDocs + where", () => {
+  test("where", () => {
     const col = collection("people");
     addDoc(col, { name: "Mike" });
     addDoc(col, { name: "John" });
 
-    const docs = getDocs(col, where("name", "==", "Mike"));
+    let q = query(col, where("name", "==", "Mike"));
+    let querySnapshot = getDocs(q);
+    let docs = querySnapshot.data();
     expect(docs[0].name).toBe("Mike");
 
-    const docs2 = getDocs(col, where("name", "==", "John"));
-    expect(docs2[0].name).toBe("John");
+    q = query(col, where("name", "==", "John"));
+    querySnapshot = getDocs(q);
+    docs = querySnapshot.data();
+    expect(docs[0].name).toBe("John");
   });
 
-  test("getDocs + multiple where", () => {
+  test("multiple wheres work like AND", () => {
     const col = collection("people");
     addDoc(col, { name: "Mike", surname: "Small", age: 18 });
     addDoc(col, { name: "Mike", surname: "Big", age: 39 });
 
-    const docs = getDocs(
-      col,
-      where("name", "==", "Mike"),
-      where("age", ">", 18)
-    );
+    const q = query(col, where("name", "==", "Mike"), where("age", ">", 18));
+    const querySnapshot = getDocs(q);
+    const docs = querySnapshot.data();
+
+    expect(docs.length).toBe(1);
     expect(docs[0].surname).toBe("Big");
   });
 
@@ -76,7 +131,9 @@ describe("queries", () => {
     addDoc(col, { name: "John" });
     addDoc(col, { name: "Pfteven" });
 
-    const docs = getDocs(col, where("name", "in", ["Mike", "John"]));
+    const q = query(col, where("name", "in", ["Mike", "John"]));
+    const querySnapshot = getDocs(q);
+    const docs = querySnapshot.data();
 
     expect(docs.length).toBe(2);
     expect(docs[0].name).toBe("Mike");
@@ -89,7 +146,9 @@ describe("queries", () => {
     addDoc(col, { name: "John" });
     addDoc(col, { name: "Pfteven" });
 
-    const docs = getDocs(col, where("name", "not-in", ["Mike", "John"]));
+    const q = query(col, where("name", "not-in", ["Mike", "John"]));
+    const querySnapshot = getDocs(q);
+    const docs = querySnapshot.data();
 
     expect(docs.length).toBe(1);
     expect(docs[0].name).toBe("Pfteven");
@@ -101,10 +160,12 @@ describe("queries", () => {
     addDoc(col, { name: "John", likes: ["coffee", "potatoes"] });
     addDoc(col, { name: "Pfteven", likes: ["dogs"] });
 
-    const docs = getDocs(
+    const q = query(
       col,
       where("likes", "array-contains", ["potatoes", "hunger"])
     );
+    const querySnapshot = getDocs(q);
+    const docs = querySnapshot.data();
 
     expect(docs.length).toBe(1);
     expect(docs[0].name).toBe("Mike");
@@ -116,10 +177,12 @@ describe("queries", () => {
     addDoc(col, { name: "John", likes: ["coffee", "potatoes"] });
     addDoc(col, { name: "Pfteven", likes: ["dogs"] });
 
-    const docs = getDocs(
+    const q = query(
       col,
       where("likes", "array-contains-any", ["potatoes", "hunger"])
     );
+    const querySnapshot = getDocs(q);
+    const docs = querySnapshot.data();
 
     expect(docs.length).toBe(2);
     expect(docs[0].name).toBe("Mike");
@@ -131,11 +194,15 @@ describe("queries", () => {
     addDoc(col, { name: "Abel" });
     addDoc(col, { name: "Zynosky" });
 
-    let docs = getDocs(col, orderBy("name", "desc"));
+    let q = query(col, orderBy("name", "desc"));
+    let querySnapshot = getDocs(q);
+    let docs = querySnapshot.data();
     expect(docs[0].name).toBe("Zynosky");
     expect(docs[1].name).toBe("Abel");
 
-    docs = getDocs(col, orderBy("name", "asc"));
+    q = query(col, orderBy("name", "asc"));
+    querySnapshot = getDocs(q);
+    docs = querySnapshot.data();
     expect(docs[0].name).toBe("Abel");
     expect(docs[1].name).toBe("Zynosky");
   });
@@ -145,7 +212,10 @@ describe("queries", () => {
     addDoc(col, { name: "Abel", age: 40 });
     addDoc(col, { name: "Zynosky", age: 30 });
 
-    const docs = getDocs(col, orderBy("age", "desc"));
+    const q = query(col, orderBy("age", "desc"));
+    const querySnapshot = getDocs(q);
+    const docs = querySnapshot.data();
+
     expect(docs[0].name).toBe("Abel");
     expect(docs[1].name).toBe("Zynosky");
   });
@@ -156,7 +226,10 @@ describe("queries", () => {
     addDoc(col, { name: "Zynosky", age: 30 });
     addDoc(col, { name: "Pepe", age: 30 });
 
-    const docs = getDocs(col, limit(2));
+    const q = query(col, limit(2));
+    const querySnapshot = getDocs(q);
+    const docs = querySnapshot.data();
+
     expect(docs[0].name).toBe("Abel");
     expect(docs[1].name).toBe("Zynosky");
   });
@@ -167,52 +240,11 @@ describe("queries", () => {
     addDoc(col, { name: "Zynosky", age: 30 });
     addDoc(col, { name: "Pepe", age: 30 });
 
-    const docs = getDocs(col, skip(1));
+    const q = query(col, skip(1));
+    const querySnapshot = getDocs(q);
+    const docs = querySnapshot.data();
+
     expect(docs[0].name).toBe("Zynosky");
     expect(docs[1].name).toBe("Pepe");
   });
-});
-
-test("deleteDocs", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Abel", age: 40 });
-  addDoc(col, { name: "Zynosky", age: 30 });
-  addDoc(col, { name: "Pepe", age: 30 });
-
-  deleteDocs(col, where("name", "==", "Zynosky"));
-  const docs = getDocs(col);
-  expect(docs[0].name).toBe("Abel");
-  expect(docs[1].name).toBe("Pepe");
-});
-
-test("deleteDoc", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Abel", age: 40 });
-  addDoc(col, { name: "Zynosky", age: 30 });
-  addDoc(col, { name: "Pepe", age: 30 });
-
-  deleteDoc(col);
-  const docs = getDocs(col);
-  expect(docs[0].name).toBe("Zynosky");
-  expect(docs[1].name).toBe("Pepe");
-});
-
-test("updateDocs", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Abel", age: 40 });
-
-  updateDocs(col, where("name", "==", "Abel"), { age: 22 });
-  const docs = getDocs(col);
-  expect(docs[0].age).toBe(22);
-});
-
-test("updateDoc", () => {
-  const col = collection("people");
-  addDoc(col, { name: "Abel", age: 40 });
-  addDoc(col, { name: "Betty", age: 60 });
-
-  updateDoc(col, { age: 22 });
-  const docs = getDocs(col);
-  expect(docs[0].age).toBe(22);
-  expect(docs[1].age).toBe(60);
 });

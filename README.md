@@ -13,60 +13,76 @@ for educational purposes.
 # Usage Overview
 
 ```javascript
-import {
-  collection,
-  addDoc,
-  getDocs,
-  where,
-  orderBy,
-  limit,
-  skip,
-} from "firestorage";
+import { collection, doc, ... } from "firestorage";
 
 // You do not need to "create" or "delete" collections. After you create the
 // first document in a collection, the collection exists. If you delete all of
 // the documents in a collection, it no longer exists.
-const col = collection("people");
+//
+// You can get a reference to a collection (colRef) by using `collection`.
+const colRef = collection("cats");
 
-// You can insert documents to a collection by using `addDoc`
-const tolouse = addDoc(col, { name: "Tolouse", likes: ["Piano", "Singing"] });
-const thomas = addDoc(col, { name: "Thomas O'Malley", likes: ["Duchess"] });
+// Once you have a reference, you can pass it to `addDoc` to add documents
+// into it.
+//
+// You'll get back a "document reference" (docRef).
+const tolouseRef = addDoc(colRef, { name: "Tolouse", likes: ["Piano", "Singing"] });
+const thomasRef = addDoc(colRef, { name: "Thomas O'Malley", likes: ["Duchess"] });
+
 // Not all documents have to be equal! Duchess has an `age` key-value, but
 // it's recommended that they all have the same keys so it's easier to work
 // with.
-const duchess = addDoc(col, {
+const duchessRef = addDoc(colRef, {
   name: "Duchess",
   likes: ["Thomas O'Malley", "Dancing"],
   age: 3,
 });
 
-// Get all documents using `getDocs`
-const docs = getDocs(col);
+// You can create a reference to a document that doesn't exist
+const berliozRef = doc('cats', 'Berlioz')
+// And add it later
+addDoc(berliozRef, { name: 'Berlioz' })
 
-// You can pass "queries" to `getDocs` to filter the returned documents
-const docs = getDocs(col, where("name", "==", "Tolouse"));
+// A document reference is like a direction pointing to the document in the
+// collection. You can use it to get the document back using `getDoc`
+const tolouse = getDoc(tolouseRef);
+// We need to use `data()` to access the document
+console.log(tolouse.data().name) // logs 'Tolouse'
+// We can also use `exists()` to check it's existance
+console.log(tolouse.exists()) // logs true
 
-// Get a single document using `getDoc` (singular form)
-const doc = getDoc(col);
-const doc = getDoc(col, where("name", "==", "Duchess"));
+// Pass a collection reference to `getDocs` to get all documents
+const docs = getDocs(colRef);
 
-// Delete all documents matching a given query by using `deleteDocs`
-deleteDocs(col, where("name", "==", "Tolouse"));
+// To filter documents in a collection, pass a query to `getDocs` instead
+const q = query(colRef, where("name", "==", "Tolouse"))
+const docs = getDocs(q);
 
-// Delete the first document matching query
-deleteDoc(col, where("name", "==", "Tolouse"));
+// Delete document
+deleteDoc(thomasRef);
 
-// Update all documents matching a given query by using `updateDocs`
-updateDocs(col, where("name", "==", "Tolouse"), { age: 4 });
+// Set document - If there is a document already in the reference, it will
+// override it
+setDoc(tolouseRef, { name: 'Tolouse', age: 1 })
 
-// Update the first document matching the query
-updateDoc(col, where("name", "==", "Tolouse"), { age: 4 });
+// If you don't want to override, just change it's values, you can pass
+// `{ merge: true }`
+setDoc(tolouseRef, { name: 'Tolouse', age: 1 }, { merge: true })
+
+// Or use `updateDoc`, which will not override and merge by default
+updateDoc(duchessRef, { age: 2 });
 ```
+
+# Document Identifiers
+
+TODO
 
 # Queries
 
 ```javascript
-const docs = getDocs(col, where("name", "in", ["Tolouse", "Duchess"]));
+const q = query(col, where("name", "in", ["Tolouse", "Duchess"]));
+const docs = getDocs(q);
+
 const docs = getDocs(
   col,
   where("likes", "array-contains", ["Piano", "Singing"])
@@ -87,3 +103,7 @@ const docs = getDocs(
   limit(10)
 );
 ```
+
+# TODO
+
+- `updateDoc`: dot notation, `arrayUnion`, `arrayRemove` and `increment`
