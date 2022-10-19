@@ -107,6 +107,15 @@ const tolouse = doc("cats", "tolouse");
 The first part (`cats`) is the collection, and the second part (`tolouse`) is
 the ID.
 
+Note that we created a reference, but the actual document doesn't exist yet,
+we have to add it:
+
+```javascript
+const tolouse = doc("cats", "tolouse");
+addDoc(tolouse, { name: "Tolouse" });
+const id = getDoc(tolouse).data().id; // "tolouse"
+```
+
 Most of the time though, you want automatic unique IDs. For that, you can use
 `addDoc`:
 
@@ -114,6 +123,9 @@ Most of the time though, you want automatic unique IDs. For that, you can use
 const tolouse = addDoc(doc("cats"), { name: "Tolouse" });
 const id = getDoc(tolouse).data().id; // An auto-generated UID
 ```
+
+`addDoc` returns a reference to the added document, so you can access it later
+if you need to.
 
 # Queries
 
