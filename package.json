@@ -2,10 +2,9 @@
   "name": "firestorage",
   "version": "1.0.0",
   "description": "A firebase-like database implemented using localstorage for educational purposes",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "jest",
-    "build": "browserify lib/index.js -o dist/index.js"
+    "test": "jest"
   },
   "author": "Federico Ramirez",
   "license": "ISC",
