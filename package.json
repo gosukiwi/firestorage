@@ -1,14 +1,16 @@
 {
-  "name": "firebase-localstorage",
+  "name": "firestorage",
   "version": "1.0.0",
   "description": "A firebase-like database implemented using localstorage for educational purposes",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "browserify lib/index.js -o dist/index.js"
   },
   "author": "Federico Ramirez",
   "license": "ISC",
   "devDependencies": {
+    "browserify": "^17.0.0",
     "eslint": "^8.25.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
