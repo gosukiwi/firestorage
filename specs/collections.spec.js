@@ -248,3 +248,25 @@ describe("queries", () => {
     expect(docs[1].name).toBe("Pepe");
   });
 });
+
+describe("many to many", () => {
+  test("works", () => {
+    const categories = collection("categories");
+    const cat1 = addDoc(categories, { name: "general" });
+    const cat2 = addDoc(categories, { name: "pretty things" });
+    const items = collection("items");
+    addDoc(items, { name: "Potatoes", items: [cat1.id, cat2.id] });
+    addDoc(items, { name: "Sunglasses", items: [cat1.id] });
+    addDoc(items, { name: "Eyes", items: [cat2.id] });
+    addDoc(items, { name: "Salt", items: [] });
+
+    const q = query(
+      items,
+      where("items", "array-contains-any", [cat1.id, cat2.id])
+    );
+    const querySnapshot = getDocs(q);
+    const docs = querySnapshot.data();
+
+    expect(docs.length).toBe(3);
+  });
+});
